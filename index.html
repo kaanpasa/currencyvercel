@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KURMATİK</title>
+    <style>
+        :root { --accent: #00ff88; --card: #1a1a1a; }
+        body { background: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .container { width: 100%; max-width: 400px; }
+        .settings { background: #222; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 0.8rem; display: flex; gap: 10px; justify-content: center; border: 1px dashed #444; }
+        .settings input { width: 70px; background: #000; border: 1px solid var(--accent); color: var(--accent); text-align: center; border-radius: 5px; font-size: 0.9rem; outline: none; }
+        .input-group { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        label { display: block; color: #888; font-size: 0.75rem; margin-bottom: 5px; font-weight: bold; }
+        .main-input { width: 100%; background: none; border: none; color: var(--accent); font-size: 2.2rem; outline: none; padding: 0; }
+        .mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--accent); font-size: 2rem; margin-top: 20px; cursor: pointer; }
+        .status { margin-top: 15px; font-size: 0.8rem; color: #555; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="settings">
+        <div>1 USD = <input type="number" id="rateTry" value="43.26" step="0.01"> TRY</div>
+        <div>1 USD = <input type="number" id="rateEgp" value="47.42" step="0.01"> EGP</div>
+    </div>
+
+    <div class="input-group">
+        <label>USD - DOLAR</label>
+        <input type="number" id="usd" class="main-input" placeholder="0.00">
+    </div>
+
+    <div class="input-group">
+        <label>TRY - LİRA</label>
+        <input type="number" id="try" class="main-input" placeholder="0.00">
+    </div>
+
+    <div class="input-group">
+        <label>EGP - MISIR POUNDU</label>
+        <input type="number" id="egp" class="main-input" placeholder="0.00">
+    </div>
+
+    <center>
+        <button class="mic-btn" onclick="dinle()">🎤</button>
+        <div id="durum" class="status">SESLE KOMUT VER</div>
+    </center>
+</div>
+
+<script>
+    const uI = document.getElementById('usd');
+    const tI = document.getElementById('try');
+    const eI = document.getElementById('egp');
+    const rTry = document.getElementById('rateTry');
+    const rEgp = document.getElementById('rateEgp');
+
+    function hesapla(kaynak) {
+        // ParseFloat virgülü sevmez, noktaya çeviriyoruz
+        const kurTRY = parseFloat(rTry.value) || 0;
+        const kurEGP = parseFloat(rEgp.value) || 0;
+
+        if (kaynak === 'usd') {
+            const v = parseFloat(uI.value);
+            if (isNaN(v)) { tI.value = ""; eI.value = ""; return; }
+            tI.value = (v * kurTRY).toFixed(2);
+            eI.value = (v * kurEGP).toFixed(2);
+        } 
+        else if (kaynak === 'try') {
+            const v = parseFloat(tI.value);
+            if (isNaN(v)) { uI.value = ""; eI.value = ""; return; }
+            const dolar = v / kurTRY;
+            uI.value = dolar.toFixed(2);
+            eI.value = (dolar * kurEGP).toFixed(2);
+        } 
+        else if (kaynak === 'egp') {
+            const v = parseFloat(eI.value);
+            if (isNaN(v)) { uI.value = ""; tI.value = ""; return; }
+            const dolar = v / kurEGP;
+            uI.value = dolar.toFixed(2);
+            tI.value = (dolar * kurTRY).toFixed(2);
+        }
+    }
+
+    uI.oninput = () => hesapla('usd');
+    tI.oninput = () => hesapla('try');
+    eI.oninput = () => hesapla('egp');
+    rTry.oninput = () => hesapla('usd');
+    rEgp.oninput = () => hesapla('usd');
+
+    function dinle() {
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!Speech) return alert("Tarayıcı desteklemiyor.");
+        
+        const tanima = new Speech();
+        tanima.lang = 'tr-TR';
+        tanima.onstart = () => document.getElementById('durum').innerText = "Dinliyorum...";
+        
+        tanima.onresult = (event) => {
+            const metin = event.results[0][0].transcript.toLowerCase();
+            const rakam = metin.match(/\d+/);
+            
+            if (rakam) {
+                const s = rakam[0];
+                if (metin.includes("lira") || metin.includes("tl")) {
+                    tI.value = s;
+                    hesapla('try');
+                } else if (metin.includes("pound") || metin.includes("mısır") || metin.includes("egp")) {
+                    eI.value = s;
+                    hesapla('egp');
+                } else {
+                    uI.value = s;
+                    hesapla('usd');
+                }
+                document.getElementById('durum').innerText = `"${metin}" çevrildi.`;
+            } else {
+                document.getElementById('durum').innerText = "Sayı anlaşılamadı.";
+            }
+        };
+        tanima.start();
+    }
+</script>
+</body>
+</html>
