@@ -4,104 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hızlı Kur</title>
-    <link rel="manifest" href="data:application/manifest+json,{'name':'HizliKur','short_name':'Kur','start_url':'.','display':'standalone','background_color':'#000','theme_color':'#00ff88'}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'HizliKur','short_name':'Kur','start_url':'index.html','display':'standalone','background_color':'#000','theme_color':'#00ff88'}">
     <style>
         :root { --accent: #00ff88; --card: #1a1a1a; }
-        body { 
-            background: #000; 
-            color: #fff; 
-            font-family: sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-start;
-            min-height: 100vh;
-            padding: 20px; 
-            margin: 0; 
-            box-sizing: border-box;
-        }
-        .container { 
-            width: 100%; 
-            max-width: 400px; 
-            display: flex; 
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .settings { 
-            background: #222; 
-            padding: 12px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            font-size: 0.8rem; 
-            display: flex; 
-            gap: 10px; 
-            justify-content: center; 
-            border: 1px dashed #444; 
-        }
-        .settings input { 
-            width: 65px; 
-            background: #000; 
-            border: 1px solid var(--accent); 
-            color: var(--accent); 
-            text-align: center; 
-            border-radius: 5px; 
-            font-size: 0.9rem; 
-            outline: none; 
-        }
-        .input-group { 
-            background: var(--card); 
-            padding: 15px; 
-            border-radius: 15px; 
-            margin-bottom: 12px; 
-            border: 1px solid #333; 
-        }
-        label { 
-            display: block; 
-            color: #888; 
-            font-size: 0.75rem; 
-            margin-bottom: 5px; 
-            font-weight: bold; 
-        }
-        .main-input { 
-            width: 100%; 
-            background: none; 
-            border: none; 
-            color: var(--accent); 
-            font-size: 2.2rem; 
-            outline: none; 
-            padding: 0; 
-        }
-        /* Mikrofonu Hizalayan Alan */
-        .action-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-            width: 100%;
-        }
-        .mic-btn { 
-            width: 80px; 
-            height: 80px; 
-            border-radius: 50%; 
-            border: none; 
-            background: var(--accent); 
-            font-size: 2.5rem; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
-            transition: transform 0.1s;
-        }
-        .mic-btn:active { transform: scale(0.9); }
-        .status { 
-            margin-top: 15px; 
-            font-size: 0.9rem; 
-            color: #666; 
-            text-align: center; 
-            width: 100%;
-        }
+        body { background: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; min-height: 100vh; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
+        .settings { background: #222; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 0.8rem; display: flex; gap: 10px; justify-content: center; border: 1px dashed #444; }
+        .settings input { width: 65px; background: #000; border: 1px solid var(--accent); color: var(--accent); text-align: center; border-radius: 5px; font-size: 0.9rem; outline: none; }
+        .input-group { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        label { display: block; color: #888; font-size: 0.75rem; margin-bottom: 5px; font-weight: bold; }
+        .main-input { width: 100%; background: none; border: none; color: var(--accent); font-size: 2.2rem; outline: none; padding: 0; }
+        .action-area { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
+        .mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--accent); font-size: 2.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4); }
+        .status { margin-top: 15px; font-size: 0.9rem; color: #666; text-align: center; }
     </style>
 </head>
 <body>
@@ -116,12 +33,10 @@
         <label>USD - DOLAR</label>
         <input type="number" id="usd" class="main-input" placeholder="0.00" inputmode="decimal">
     </div>
-
     <div class="input-group">
         <label>TRY - LİRA</label>
         <input type="number" id="try" class="main-input" placeholder="0.00" inputmode="decimal">
     </div>
-
     <div class="input-group">
         <label>EGP - MISIR POUNDU</label>
         <input type="number" id="egp" class="main-input" placeholder="0.00" inputmode="decimal">
@@ -134,42 +49,57 @@
 </div>
 
 <script>
-    // Offline Service Worker
+    // --- OFFLINE ÇALIŞTIRMA ---
     if ('serviceWorker' in navigator) {
-        const swCode = `
-            const cacheName = 'kur-v2';
-            self.addEventListener('install', e => e.waitUntil(caches.open(cacheName).then(c => c.addAll(['./', './index.html']))));
-            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-        `;
-        const blob = new Blob([swCode], {type: 'application/javascript'});
-        navigator.serviceWorker.register(URL.createObjectURL(blob));
+        window.addEventListener('load', () => {
+            const swCode = `
+                const cacheName = 'kur-cache-v3';
+                self.addEventListener('install', e => e.waitUntil(caches.open(cacheName).then(c => c.addAll(['./', 'index.html']))));
+                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+            `;
+            const blob = new Blob([swCode], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
+        });
     }
 
     const uI = document.getElementById('usd'), tI = document.getElementById('try'), eI = document.getElementById('egp');
     const rTry = document.getElementById('rateTry'), rEgp = document.getElementById('rateEgp');
 
+    // Kurları hafızadan yükle ve kaydet
+    window.onload = () => {
+        if(localStorage.getItem('savedTry')) rTry.value = localStorage.getItem('savedTry');
+        if(localStorage.getItem('savedEgp')) rEgp.value = localStorage.getItem('savedEgp');
+    };
+    rTry.onchange = () => { localStorage.setItem('savedTry', rTry.value); hesapla('usd'); };
+    rEgp.onchange = () => { localStorage.setItem('savedEgp', rEgp.value); hesapla('usd'); };
+
     function hesapla(kaynak) {
         const kurTRY = parseFloat(rTry.value) || 0, kurEGP = parseFloat(rEgp.value) || 0;
+        const inputField = document.getElementById(kaynak);
+        const val = parseFloat(inputField.value);
+        
+        if (isNaN(val) || inputField.value === "") { uI.value=tI.value=eI.value=""; return; }
+
         if (kaynak === 'usd') {
-            const v = parseFloat(uI.value);
-            if (isNaN(v)) { tI.value = ""; eI.value = ""; return; }
-            tI.value = (v * kurTRY).toFixed(2); eI.value = (v * kurEGP).toFixed(2);
+            tI.value = (val * kurTRY).toFixed(2);
+            eI.value = (val * kurEGP).toFixed(2);
         } else if (kaynak === 'try') {
-            const v = parseFloat(tI.value);
-            if (isNaN(v)) { uI.value = ""; eI.value = ""; return; }
-            const d = v / kurTRY; uI.value = d.toFixed(2); eI.value = (d * kurEGP).toFixed(2);
+            const d = val / kurTRY;
+            uI.value = d.toFixed(2);
+            eI.value = (d * kurEGP).toFixed(2);
         } else if (kaynak === 'egp') {
-            const v = parseFloat(eI.value);
-            if (isNaN(v)) { uI.value = ""; tI.value = ""; return; }
-            const d = v / kurEGP; uI.value = d.toFixed(2); tI.value = (d * kurTRY).toFixed(2);
+            const d = val / kurEGP;
+            uI.value = d.toFixed(2);
+            tI.value = (d * kurTRY).toFixed(2);
         }
     }
 
-    uI.oninput = () => hesapla('usd'); tI.oninput = () => hesapla('try'); eI.oninput = () => hesapla('egp');
-    rTry.oninput = () => hesapla('usd'); rEgp.oninput = () => hesapla('usd');
+    uI.oninput = () => hesapla('usd');
+    tI.oninput = () => hesapla('try');
+    eI.oninput = () => hesapla('egp');
 
     function dinle() {
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const Speech = window.webkitSpeechRecognition || window.SpeechRecognition;
         if (!Speech) return alert("Destek yok.");
         const tanima = new Speech(); tanima.lang = 'tr-TR';
         tanima.onstart = () => document.getElementById('durum').innerText = "Dinliyorum...";
